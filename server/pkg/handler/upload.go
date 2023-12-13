@@ -45,17 +45,18 @@ func SetConnectionHandler(handler ConnectionHandlerInterface) {
 
 func (p *Upload) UploadFile(w http.ResponseWriter, r *http.Request) {
 	
-	sqlDDL := "insert into scraping_items(file_id,user_id,key_word,total_advertised,total_link,total_search,html) values"
+	sqlDDL := "insert into scraping_items(file_id,user_id,keyword,total_advertised,total_link,total_search,html) values"
 	// Parse the multipart form from the request
 	err := r.ParseMultipartForm(10 << 20) // 10MB is the maximum form size
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
+	
 	// Retrieve the file from the form data
 	file, _, err := r.FormFile("file")
 	if err != nil {
+		p.l.Println(err)
 		http.Error(w, "Failed to retrieve file from form data", http.StatusBadRequest)
 		return
 	}
@@ -143,8 +144,7 @@ func (p *Upload) ToJSON(w io.Writer) error {
 
 func (p *Upload) GetHistoryUpload(w http.ResponseWriter, r *http.Request){
 	db, _ := postgresql.InitConnection()
-	rows, queryError := db.Query("select  total_advertised,total_link,total_search,html from scraping_items")
-
+	rows, queryError := db.Query("select  keyword,total_advertised,total_link,total_search,html from scraping_items")
 	if queryError != nil {
 		p.l.Println("Error: ",queryError.Error())
 	}
@@ -159,6 +159,7 @@ func (p *Upload) GetHistoryUpload(w http.ResponseWriter, r *http.Request){
 		scraping := model.TScraping{}
 		
 		err := rows.Scan(
+			&scraping.Keyword,
 			&scraping.TotalAdvertised,
 			&scraping.TotalLink,
 			&scraping.TotalSearch,

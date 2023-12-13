@@ -19,6 +19,7 @@ require (
 	github.com/go-sql-driver/mysql v1.7.1
 	github.com/google/uuid v1.4.0
 	github.com/lib/pq v1.10.9
+	github.com/rs/cors v1.10.1
 	golang.org/x/net v0.7.0 // indirect
 	golang.org/x/sync v0.5.0
 )

@@ -52,11 +52,12 @@ func main() {
 
 	// getRouter := sm.Methods(http.MethodGet).Subrouter()
 	// getRouter.HandleFunc("/", ph.GetProducts)
-
+	sm.Use(accessControlMiddleware)
 	postRouter := sm.Methods(http.MethodPost).Subrouter()
 	postRouter.HandleFunc("/upload", ph.UploadFile)
 	getRouter := sm.Methods(http.MethodGet).Subrouter()
 	getRouter.HandleFunc("/history-upload", ph.GetHistoryUpload)
+	
 	// Mount the socket.io server to the CORS-enabled router
 	sm.HandleFunc("/ws", socketHandler)
 	connectionHandler := ConnectionHandler{}
@@ -125,3 +126,17 @@ func socketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func accessControlMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+            w.Header().Set("Access-Control-Allow-Origin", "*")
+            w.Header().Set("Access-Control-Allow-Methods", "GET, POST, OPTIONS,PUT")
+			w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+                if r.Method == "OPTIONS" {
+                    return
+                }
+
+                next.ServeHTTP(w, r)
+            })
+        }
